@@ -1,0 +1,31 @@
+package app
+
+import (
+	"log/slog"
+	"os"
+)
+
+const (
+	LocalArea = "local"
+	DebugArea = "debug"
+	ProdArea  = "prod"
+)
+
+func SetLogger(env string) *slog.Logger {
+	var log *slog.Logger
+	switch env {
+	case LocalArea:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}))
+	case DebugArea:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}))
+	case ProdArea:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		}))
+	}
+	return log
+}
