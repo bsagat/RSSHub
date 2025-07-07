@@ -4,6 +4,7 @@ import (
 	"RSSHub/config"
 	"RSSHub/internal/adapters/repo"
 	"RSSHub/internal/domain/ports"
+	"RSSHub/internal/pkg/logger"
 	"RSSHub/internal/service"
 	"context"
 	"log/slog"
@@ -21,7 +22,7 @@ type App struct {
 
 func New(ctx context.Context, cfg *config.Config) *App {
 	// Logger setup
-	log := SetLogger(cfg.Env)
+	log := logger.New(cfg.Env)
 	log.Info("Logger setup has been finished...")
 
 	// Database connection

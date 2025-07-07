@@ -1,4 +1,4 @@
-package app
+package logger
 
 import (
 	"log/slog"
@@ -11,7 +11,7 @@ const (
 	ProdArea  = "prod"
 )
 
-func SetLogger(env string) *slog.Logger {
+func New(env string) *slog.Logger {
 	var log *slog.Logger
 	switch env {
 	case LocalArea:
