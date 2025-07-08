@@ -1,5 +1,5 @@
 CREATE TABLE feeds (
-    ID UUID PRIMARY KEY,
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Name TEXT UNIQUE NOT NULL,
     URL TEXT NOT NULL,
     Created_at TIMESTAMP DEFAULT NOW(),
@@ -7,7 +7,7 @@ CREATE TABLE feeds (
 );
 
 CREATE TABLE articles(
-    ID UUID PRIMARY KEY,
+    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Title TEXT,
     Link TEXT ,
     Description TEXT,
