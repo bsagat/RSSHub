@@ -2,8 +2,8 @@ package app
 
 import (
 	"RSSHub/config"
+	"RSSHub/internal/adapters/cli"
 	"RSSHub/internal/adapters/repo"
-	"RSSHub/internal/domain/ports"
 	"RSSHub/internal/pkg/logger"
 	"RSSHub/internal/service"
 	"context"
@@ -14,10 +14,9 @@ import (
 )
 
 type App struct {
-	postgresRepo *repo.PostgresRepo
-	aggregator   ports.Aggregator
-
-	log *slog.Logger
+	cliHandler    *cli.CLIHandler
+	postrgresRepo *repo.PostgresRepo
+	log           *slog.Logger
 }
 
 func New(ctx context.Context, cfg *config.Config) *App {
@@ -32,11 +31,14 @@ func New(ctx context.Context, cfg *config.Config) *App {
 		log.Error("Failed to connect repo", "error", err)
 		os.Exit(1)
 	}
-	log.Info("Database connection established")
+	log.Info("Database connection estabilished")
+
+	aggregator := service.NewRssAggregator(postrgresRepo, log)
+	cliHandler := cli.NewCLIHandler(aggregator, log)
 
 	return &App{
-		log:          log,
-		postgresRepo: postrgresRepo,
-		aggregator:   service.NewRssAggregator(),
+		postrgresRepo: postrgresRepo,
+		cliHandler:    cliHandler,
+		log:           log,
 	}
 }

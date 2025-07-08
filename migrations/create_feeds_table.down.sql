@@ -1,1 +1,3 @@
 DROP TABLE IF EXISTS feeds;
+
+DROP TABLE IF EXISTS articles;

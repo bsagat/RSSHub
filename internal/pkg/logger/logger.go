@@ -15,15 +15,15 @@ func New(env string) *slog.Logger {
 	var log *slog.Logger
 	switch env {
 	case LocalArea:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
 		}))
 	case DebugArea:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
 		}))
 	case ProdArea:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelInfo,
 		}))
 	}

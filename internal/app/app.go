@@ -1,7 +1,16 @@
 package app
 
-import "RSSHub/internal/adapters/cli"
+import "os"
 
 func (a *App) Run() {
-	cli.ParseFlags()
+	code := a.cliHandler.ParseFlags()
+	a.CleanUp()
+	os.Exit(code)
+}
+
+func (a *App) CleanUp() {
+	a.log.Info("Started cleaning up...")
+	a.postrgresRepo.Db.Close()
+	a.cliHandler.Close()
+	a.log.Info("Cleaning up finished")
 }
