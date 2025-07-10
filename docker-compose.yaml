@@ -1,6 +1,27 @@
+
+networks:
+  rsshub-net:
+    driver: bridge
+
 services:
+  rsshub:
+    container_name: rsshub
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env   
+    depends_on:
+      RSSHubDB:
+        condition: service_healthy
+    networks:
+      - rsshub-net
+
+
   RSSHubDB:
-    image: postgres:15
+    image: postgres:16.3
     container_name: RSSHubDB
     environment:
       - POSTGRES_HOST=${DB_HOST}
@@ -16,8 +37,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/postgresql:/var/lib/postgresql/data
+    networks:
+      - rsshub-net
 
-volumes:
-  pgdata:

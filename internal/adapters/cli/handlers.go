@@ -10,7 +10,7 @@ import (
 
 func (h *CLIHandler) handleFetch() error {
 	const op = "CLIHandler.handleFetch"
-	log := h.log.With(slog.String("op", op))
+	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
 	if len(h.args) != 1 {
 		log.Error("Invalid fetch command usage", "expected", "rsshub fetch", "got", h.args)
@@ -32,7 +32,7 @@ func (h *CLIHandler) handleFetch() error {
 
 func (h *CLIHandler) handleAdd() error {
 	const op = "CLIHandler.handleAdd"
-	log := h.log.With(slog.String("op", op))
+	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
 	if len(h.args) != 5 {
 		log.Error("Invalid add command usage", "expected", "rsshub add --name <name> --url <url>", "got", h.args)
@@ -72,7 +72,7 @@ func (h *CLIHandler) handleAdd() error {
 
 func (h *CLIHandler) handleInterval() error {
 	const op = "CLIHandler.handleInterval"
-	log := h.log.With(slog.String("op", op))
+	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
 	if len(h.args) != 2 {
 		log.Error("Invalid interval command usage", "expected", "rsshub set-interval <duration>", "got", h.args)
@@ -97,7 +97,7 @@ func (h *CLIHandler) handleInterval() error {
 
 func (h *CLIHandler) handleWorkers() error {
 	const op = "CLIHandler.handleWorkers"
-	log := h.log.With(slog.String("op", op))
+	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
 	if len(h.args) != 2 {
 		log.Error("Invalid workers command usage", "expected", "rsshub set-workers <count>", "got", h.args)
@@ -122,7 +122,7 @@ func (h *CLIHandler) handleWorkers() error {
 
 func (h *CLIHandler) handleDelete() error {
 	const op = "CLIHandler.handleDelete"
-	log := h.log.With(slog.String("op", op))
+	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
 	if len(h.args) != 3 {
 		log.Error("Invalid delete command usage", "expected", "rsshub delete --name <name>", "got", h.args)
@@ -152,7 +152,7 @@ func (h *CLIHandler) handleDelete() error {
 
 func (h *CLIHandler) handleList() error {
 	const op = "CLIHandler.handleList"
-	log := h.log.With(
+	log := h.log.GetSlogLogger().With(
 		slog.String("op", op),
 	)
 
@@ -190,7 +190,7 @@ func (h *CLIHandler) handleList() error {
 
 func (h *CLIHandler) handleArticle() error {
 	const op = "CLIHandler.handleArticle"
-	log := h.log.With(
+	log := h.log.GetSlogLogger().With(
 		slog.String("op", op),
 	)
 
