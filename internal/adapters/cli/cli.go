@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"RSSHub/config"
 	"RSSHub/internal/domain/ports"
 	"RSSHub/pkg/logger"
 	"RSSHub/pkg/utils"
@@ -13,14 +14,17 @@ type CLIHandler struct {
 	aggregator ports.Aggregator
 	args       []string
 
+	cfg config.CLI_APP
 	log logger.Logger
 }
 
-func NewCLIHandler(aggregator ports.Aggregator, log logger.Logger) *CLIHandler {
+func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.Logger) *CLIHandler {
 	return &CLIHandler{
 		aggregator: aggregator,
 		args:       os.Args[1:],
-		log:        log,
+
+		cfg: cfg,
+		log: log,
 	}
 }
 

@@ -1,5 +1,5 @@
 ## Database
-DB_URL=postgres://user:admin@localhost:5432/marketflow?sslmode=disable
+DB_URL=postgres://postgres:Superpassword@localhost:5432/rsshub?sslmode=disable
 
 ## Создание новой миграции: make migrate-create name=название
 migrate-create:

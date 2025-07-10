@@ -26,7 +26,7 @@ func (h *CLIHandler) handleFetch() error {
 		return err
 	}
 
-	log.Info("Data fetch completed successfully")
+	log.Info("The background process for fetching feeds has started", "interval", h.cfg.TimerInterval.String(), "workers", h.cfg.WorkerCount)
 	return nil
 }
 

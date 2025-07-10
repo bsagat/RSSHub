@@ -1,7 +1,11 @@
 package main
 
-import "RSSHub/cmd"
+import (
+	"RSSHub/cmd"
+	"log"
+)
 
 func main() {
+	log.Println("time")
 	cmd.Run()
 }

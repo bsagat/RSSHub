@@ -28,7 +28,7 @@ func Run() {
 	}
 
 	// Running the apllication
-	if err := application.Run(); err != nil {
+	if err := application.Run(ctx); err != nil {
 		logger.Error(ctx, "failed to run application", "error", err)
 		os.Exit(1)
 	}
