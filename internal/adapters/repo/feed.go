@@ -3,123 +3,134 @@ package repo
 import (
 	"RSSHub/internal/domain/models"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var ErrFeedNotFound = errors.New("feed not found")
 
 type FeedRepo struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewFeedRepo(db *sql.DB) *FeedRepo {
+func NewFeedRepo(pool *pgxpool.Pool) *FeedRepo {
 	return &FeedRepo{
-		db: db,
+		db: pool,
 	}
 }
 
-// Creates new feed in database and sets his UUID
-func (repo *FeedRepo) Create(ctx context.Context, feed *models.RSSFeed) error {
+// Create new feed in database and sets its UUID
+func (r *FeedRepo) Create(ctx context.Context, feed *models.RSSFeed) error {
 	const op = "FeedRepo.Create"
+
 	query := `
-	INSERT INTO 
-		feeds(Name,description, URL)
-	VALUES
-		($1, $2, $3)
-	RETURNING
-		ID;
+	INSERT INTO feeds(name, description, url)
+	VALUES($1, $2, $3)
+	RETURNING id, created_at;
 	`
-	if err := repo.db.QueryRowContext(ctx, query, feed.Channel.Title, feed.Channel.Description, feed.Channel.Link).
-		Scan(&feed.ID); err != nil {
-		return fmt.Errorf("%s:%w", op, err)
+
+	err := r.db.QueryRow(ctx, query,
+		feed.Channel.Title,
+		feed.Channel.Description,
+		feed.Channel.Link,
+	).Scan(&feed.ID, &feed.CreatedAt)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
+
 	return nil
 }
 
-// Deletes feed by his name and his articles by cascade
-func (repo *FeedRepo) Delete(ctx context.Context, name string) error {
+// Delete feed by name and its articles by cascade
+func (r *FeedRepo) Delete(ctx context.Context, name string) error {
 	const op = "FeedRepo.Delete"
+
 	query := `
-		DELETE 
-			FROM feeds
-		WHERE 
-			Name = $1;
+	DELETE FROM feeds
+	WHERE name = $1;
 	`
-	res, err := repo.db.ExecContext(ctx, query, name)
+
+	tag, err := r.db.Exec(ctx, query, name)
 	if err != nil {
-		return fmt.Errorf("%s:%w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	aff, err := res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("%s:%w", op, err)
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("%s: %w", op, ErrFeedNotFound)
 	}
 
-	if aff == 0 {
-		return ErrFeedNotFound
-	}
 	return nil
 }
 
-// ListAll fetches all recent feeds from the database.
-func (repo *FeedRepo) ListAll(ctx context.Context) ([]models.RSSFeed, error) {
+// ListAll fetches all recent feeds from the database
+func (r *FeedRepo) ListAll(ctx context.Context) ([]models.RSSFeed, error) {
 	const op = "FeedRepo.ListAll"
-	query := `
-		SELECT 
-			ID, Name, Description, URL, Created_at FROM feeds
-		ORDER BY
-			 Created_at;`
 
-	rows, err := repo.db.QueryContext(ctx, query)
+	query := `
+	SELECT id, name, description, url, created_at 
+	FROM feeds
+	ORDER BY created_at DESC;
+	`
+
+	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("%s:%w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
 
-	var feeds []models.RSSFeed
-	for rows.Next() {
+	feeds, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (models.RSSFeed, error) {
 		var feed models.RSSFeed
-		if err := rows.Scan(&feed.ID, &feed.Channel.Title, &feed.Channel.Description, &feed.Channel.Link, &feed.CreatedAt); err != nil {
-			return nil, fmt.Errorf("%s:%w", op, err)
-		}
-		feeds = append(feeds, feed)
-	}
+		err := row.Scan(
+			&feed.ID,
+			&feed.Channel.Title,
+			&feed.Channel.Description,
+			&feed.Channel.Link,
+			&feed.CreatedAt,
+		)
+		return feed, err
+	})
 
-	if err := rows.Err(); err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return feeds, nil
 }
 
-// List fetches up to limit recent feeds from the database.
-func (repo *FeedRepo) List(ctx context.Context, limit int) ([]models.RSSFeed, error) {
+// List fetches up to limit recent feeds from the database
+func (r *FeedRepo) List(ctx context.Context, limit int) ([]models.RSSFeed, error) {
 	const op = "FeedRepo.List"
-	query := `
-		SELECT 
-			ID, Name, Description, URL, Created_at FROM feeds
-		ORDER BY 
-			Created_at
-		LIMIT $1;`
 
-	rows, err := repo.db.QueryContext(ctx, query, limit)
+	query := `
+	SELECT id, name, description, url, created_at 
+	FROM feeds
+	ORDER BY created_at DESC
+	LIMIT $1;
+	`
+
+	rows, err := r.db.Query(ctx, query, limit)
 	if err != nil {
-		return nil, fmt.Errorf("%s:%w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
 
-	var feeds []models.RSSFeed
-	for rows.Next() {
+	feeds, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (models.RSSFeed, error) {
 		var feed models.RSSFeed
-		if err := rows.Scan(&feed.ID, &feed.Channel.Title, &feed.Channel.Description, &feed.Channel.Link, &feed.CreatedAt); err != nil {
-			return nil, fmt.Errorf("%s:%w", op, err)
-		}
-		feeds = append(feeds, feed)
-	}
+		err := row.Scan(
+			&feed.ID,
+			&feed.Channel.Title,
+			&feed.Channel.Description,
+			&feed.Channel.Link,
+			&feed.CreatedAt,
+		)
+		return feed, err
+	})
 
-	if err := rows.Err(); err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 

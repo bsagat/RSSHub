@@ -17,3 +17,4 @@ CREATE TABLE articles(
     feed_id UUID references feeds (ID) ON DELETE CASCADE
 );
 
+

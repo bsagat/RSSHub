@@ -3,22 +3,23 @@ package service
 import (
 	"RSSHub/internal/adapters/repo"
 	"RSSHub/internal/domain/models"
+	"RSSHub/pkg/logger"
 	"context"
-	"log/slog"
 	"sync"
 	"time"
 )
 
 type RssAggregator struct {
-	repo *repo.PostgresRepo
-	log  *slog.Logger
+	repo *repo.ArticleRepo
+	log  logger.Logger
 	mu   sync.Mutex
 }
 
-func NewRssAggregator(repo *repo.PostgresRepo, log *slog.Logger) *RssAggregator {
+func NewRssAggregator(repo *repo.ArticleRepo, log logger.Logger) *RssAggregator {
 	return &RssAggregator{
 		repo: repo,
 		log:  log,
+		mu:   sync.Mutex{},
 	}
 }
 

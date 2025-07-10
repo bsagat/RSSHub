@@ -1,2 +1,4 @@
 *.env
-!user_friendly.env
+
+# Docker
+/data/
