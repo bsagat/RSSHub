@@ -136,3 +136,20 @@ func (r *FeedRepo) List(ctx context.Context, limit int) ([]models.RSSFeed, error
 
 	return feeds, nil
 }
+
+func (f *FeedRepo) Exist(ctx context.Context, name string) (bool, error) {
+	const op = "FeedRepo.IsUnique"
+
+	query := `
+	SELECT COUNT(*) != 0  as exist
+	FROM feeds
+	WHERE Name = $1
+	`
+	var exist bool
+	if err := f.db.QueryRow(ctx, query, name).
+		Scan(&exist); err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return exist, nil
+}

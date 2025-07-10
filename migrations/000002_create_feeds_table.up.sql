@@ -1,6 +1,7 @@
 CREATE TABLE feeds (
     ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     Name TEXT UNIQUE NOT NULL,
+    Description TEXT ,
     URL TEXT NOT NULL,
     Created_at TIMESTAMP DEFAULT NOW(),
     Updated_at TIMESTAMP

@@ -1,8 +1,8 @@
 package cli
 
 import (
+	"RSSHub/pkg/utils"
 	"context"
-	"fmt"
 	"log/slog"
 	"strconv"
 	"time"
@@ -34,8 +34,8 @@ func (h *CLIHandler) handleAdd() error {
 	const op = "CLIHandler.handleAdd"
 	log := h.log.GetSlogLogger().With(slog.String("op", op))
 
-	if len(h.args) != 5 {
-		log.Error("Invalid add command usage", "expected", "rsshub add --name <name> --url <url>", "got", h.args)
+	if len(h.args) != 7 {
+		log.Error("Invalid add command usage", "expected", "rsshub add --name <name> --url <url> --desc <description>", "got", h.args)
 		return ErrInvAddFlag
 	}
 
@@ -48,20 +48,30 @@ func (h *CLIHandler) handleAdd() error {
 		return ErrMissingUrlFlag
 	}
 
+	if h.args[5] != descriptionFlag {
+		log.Error("Missing required --desc flag", "got", h.args[5])
+		return ErrMissingDescFlag
+	}
+
 	name := h.args[2]
 	url := h.args[4]
+	desc := h.args[6]
 
-	if name == "" {
+	if len(name) == 0 {
 		log.Error("Feed name cannot be empty")
 		return ErrEmptyName
 	}
-	if url == "" {
+	if len(url) == 0 {
 		log.Error("Feed URL cannot be empty")
 		return ErrEmptyUrl
 	}
+	if len(desc) == 0 {
+		log.Error("Feed description cannot be empty")
+		return ErrEmptyDesc
+	}
 
-	log.Info("Adding new feed", "name", name, "url", url)
-	if err := h.aggregator.AddFeed(name, url); err != nil {
+	log.Info("Adding new feed", "name", name, "url", url, "description", desc)
+	if err := h.aggregator.AddFeed(name, desc, url); err != nil {
 		log.Error("Failed to add feed", "error", err)
 		return err
 	}
@@ -135,7 +145,7 @@ func (h *CLIHandler) handleDelete() error {
 	}
 
 	name := h.args[2]
-	if name == "" {
+	if len(name) == 0 {
 		log.Error("Feed name for deletion cannot be empty")
 		return ErrEmptyName
 	}
@@ -162,7 +172,7 @@ func (h *CLIHandler) handleList() error {
 	)
 	switch len(h.args) {
 	case 1:
-		feedCount = -1
+		feedCount = 0
 	case 3:
 		if h.args[1] != numSubFlag {
 			log.Error("Missing --num flag", "got", h.args)
@@ -172,6 +182,10 @@ func (h *CLIHandler) handleList() error {
 		if err != nil {
 			log.Error("Invalid feed count, must be an integer", "input", h.args[2], "error", err)
 			return ErrMissingNumFlag
+		}
+
+		if feedCount < 1 {
+			return ErrInvNumFlag
 		}
 	default:
 		log.Error("Invalid list command usage", "expected", "rsshub list | rsshub list --num <num>", "got", h.args)
@@ -184,7 +198,8 @@ func (h *CLIHandler) handleList() error {
 		log.Error("Failed to get feeds list", "error", err)
 		return err
 	}
-	fmt.Println(feeds)
+
+	utils.PrintFeedsList(feeds)
 	return nil
 }
 
@@ -231,6 +246,10 @@ func (h *CLIHandler) handleArticle() error {
 			return ErrMissingNumFlag
 		}
 
+		if num < 1 {
+			return ErrInvNumFlag
+		}
+
 	default:
 		log.Error(`Invalid articles command usage","expected","rsshub articles --feed-name <feed name> |
 		 rsshub articles --feed-name <feed name> --num <num>`, "got", h.args)
@@ -243,6 +262,7 @@ func (h *CLIHandler) handleArticle() error {
 		log.Error("Failes to get articles", "error", err)
 		return err
 	}
-	fmt.Println(articles)
+
+	utils.PrintArticleList(articles, feedName)
 	return nil
 }

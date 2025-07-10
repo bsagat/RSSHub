@@ -17,7 +17,7 @@ type Aggregator interface {
 	Resize(workers int) error // Dynamically resizes worker pool
 
 	// Feed management
-	AddFeed(name, url string) error              // Adds a new feed
+	AddFeed(name, desc, url string) error        // Adds a new feed
 	DeleteFeed(name string) error                // Deletes feed by name
 	ListFeeds(num int) ([]models.RSSFeed, error) // Lists all feeds
 

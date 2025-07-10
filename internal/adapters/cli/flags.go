@@ -17,6 +17,7 @@ var (
 	feednameSubFlag = "--feed-name"
 	numSubFlag      = "--num"
 	urlSubFlag      = "--url"
+	descriptionFlag = "--desc"
 )
 
 var helpFlag = flag.Bool("help", false, "Prints help message")

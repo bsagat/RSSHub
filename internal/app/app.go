@@ -33,9 +33,10 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) (*App, e
 
 	// Repository
 	articleRepo := repo.NewArticleRepo(db.Pool)
+	feedRepo := repo.NewFeedRepo(db.Pool)
 
 	// Services
-	aggregator := service.NewRssAggregator(articleRepo, logger)
+	aggregator := service.NewRssAggregator(articleRepo, feedRepo, logger)
 
 	// CLI Handler
 	cliHandler := cli.NewCLIHandler(aggregator, cfg.App, logger)
