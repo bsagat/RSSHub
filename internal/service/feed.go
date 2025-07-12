@@ -10,7 +10,7 @@ import (
 )
 
 // Shows <num> recent articles for the given feed.
-func (a *RssAggregator) GetArticles(feedName string, num int) ([]models.RSSItem, error) {
+func (a *RssAggregator) GetArticles(feedName string, num int) ([]*models.RSSItem, error) {
 	const op = "RssAggregator.GetArticles"
 	log := a.log.GetSlogLogger().With(
 		slog.String("op:%s", op),
@@ -22,7 +22,7 @@ func (a *RssAggregator) GetArticles(feedName string, num int) ([]models.RSSItem,
 	defer cancel()
 
 	var (
-		articles []models.RSSItem
+		articles []*models.RSSItem
 		err      error
 	)
 	articles, err = a.articleRepo.List(ctx, feedName, num)
@@ -39,7 +39,7 @@ func (a *RssAggregator) GetArticles(feedName string, num int) ([]models.RSSItem,
 }
 
 // Shows the <num> most recently added feeds.
-func (a *RssAggregator) ListFeeds(num int) ([]models.RSSFeed, error) {
+func (a *RssAggregator) ListFeeds(num int) ([]*models.Feed, error) {
 	const op = "RssAggregator.ListFeeds"
 	log := a.log.GetSlogLogger().With(
 		slog.String("op", op),
@@ -50,7 +50,7 @@ func (a *RssAggregator) ListFeeds(num int) ([]models.RSSFeed, error) {
 	defer cancel()
 
 	var (
-		feeds []models.RSSFeed
+		feeds []*models.Feed
 		err   error
 	)
 	switch num {
@@ -98,14 +98,12 @@ func (a *RssAggregator) AddFeed(name, desc, url string) error {
 	}
 
 	// Creating a new feed
-	feed := models.RSSFeed{
-		Channel: models.Channel{
-			Title:       name,
-			Description: desc,
-			Link:        url,
-		},
+	feed := &models.Feed{
+		Name:        name,
+		Description: desc,
+		URL:         url,
 	}
-	if err := a.feedRepo.Create(ctx, &feed); err != nil {
+	if err := a.feedRepo.Create(ctx, feed); err != nil {
 		log.Error("Failed to create new feed", "error", err)
 		return fmt.Errorf("%s: %w", op, err)
 	}

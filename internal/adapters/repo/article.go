@@ -57,7 +57,7 @@ func (r *ArticleRepo) Create(ctx context.Context, feedID string, articles []mode
 }
 
 // List fetches recent articles by feed name with limit
-func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]models.RSSItem, error) {
+func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]*models.RSSItem, error) {
 	const op = "ArticleRepo.List"
 
 	query := `
@@ -75,10 +75,13 @@ func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]m
 			a.published_at DESC
 		LIMIT $2`
 
-	rows, _ := r.pool.Query(ctx, query, feedName, limit)
+	rows, err := r.pool.Query(ctx, query, feedName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 	defer rows.Close()
 
-	articles, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (models.RSSItem, error) {
+	articles, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*models.RSSItem, error) {
 		var item models.RSSItem
 		err := row.Scan(
 			&item.Title,
@@ -86,7 +89,10 @@ func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]m
 			&item.Description,
 			&item.PubDate,
 		)
-		return item, err
+		if err != nil {
+			return nil, err
+		}
+		return &item, nil
 	})
 
 	if err != nil {
@@ -97,7 +103,7 @@ func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]m
 }
 
 // ListAll fetches all articles for a feed
-func (r *ArticleRepo) ListAll(ctx context.Context, feedName string) ([]models.RSSItem, error) {
+func (r *ArticleRepo) ListAll(ctx context.Context, feedName string) ([]*models.RSSItem, error) {
 	const op = "ArticleRepo.ListAll"
 
 	query := `
@@ -114,10 +120,13 @@ func (r *ArticleRepo) ListAll(ctx context.Context, feedName string) ([]models.RS
 		ORDER BY 
 			a.published_at DESC`
 
-	rows, _ := r.pool.Query(ctx, query, feedName)
+	rows, err := r.pool.Query(ctx, query, feedName)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 	defer rows.Close()
 
-	articles, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (models.RSSItem, error) {
+	articles, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*models.RSSItem, error) {
 		var item models.RSSItem
 		err := row.Scan(
 			&item.Title,
@@ -125,7 +134,10 @@ func (r *ArticleRepo) ListAll(ctx context.Context, feedName string) ([]models.RS
 			&item.Description,
 			&item.PubDate,
 		)
-		return item, err
+		if err != nil {
+			return nil, err
+		}
+		return &item, nil
 	})
 
 	if err != nil {

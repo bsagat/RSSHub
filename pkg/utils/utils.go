@@ -41,7 +41,7 @@ func PrintHelp() {
 // 5. [2025-06-14] Microsoft Teams gets AI-powered meeting summarization
 //    https://techcrunch.com/microsoft-teams-ai-summary/
 
-func PrintArticleList(articles []models.RSSItem, feedName string) {
+func PrintArticleList(articles []*models.RSSItem, feedName string) {
 	format :=
 		`%d. [%s] %s
 	 %s 
@@ -54,7 +54,7 @@ func PrintArticleList(articles []models.RSSItem, feedName string) {
 	}
 }
 
-func PrintFeedsList(feeds []models.RSSFeed) {
+func PrintFeedsList(feeds []*models.Feed) {
 	format := `%d. Name: %s 
 	 URL: %s 
 	 Added: %s 
@@ -63,6 +63,6 @@ func PrintFeedsList(feeds []models.RSSFeed) {
 
 	fmt.Print("# Available RSS Feeds\n\n")
 	for i, feed := range feeds {
-		fmt.Printf(format, i+1, feed.Channel.Title, feed.Channel.Link, feed.CreatedAt.Format(time.DateTime))
+		fmt.Printf(format, i+1, feed.Name, feed.URL, feed.CreatedAt.Format(time.DateTime))
 	}
 }

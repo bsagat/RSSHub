@@ -49,3 +49,13 @@ func (f RSSFeed) String() string {
 
 	return sb.String()
 }
+
+// Feed represent structure to work with database
+type Feed struct {
+	ID          string
+	Name        string
+	Description string
+	URL         string
+	CreatedAt   time.Time
+	UpdatedAt   *time.Time
+}

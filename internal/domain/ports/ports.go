@@ -16,10 +16,10 @@ type Aggregator interface {
 	Resize(workers int) error          // Dynamically resizes worker pool
 
 	// Feed management
-	AddFeed(name, desc, url string) error        // Adds a new feed
-	DeleteFeed(name string) error                // Deletes feed by name
-	ListFeeds(num int) ([]models.RSSFeed, error) // Lists all feeds
+	AddFeed(name, desc, url string) error      // Adds a new feed
+	DeleteFeed(name string) error              // Deletes feed by name
+	ListFeeds(num int) ([]*models.Feed, error) // Lists all feeds
 
 	// Article retrieval
-	GetArticles(feedName string, num int) ([]models.RSSItem, error) // Gets latest 'num' articles for the feed
+	GetArticles(feedName string, num int) ([]*models.RSSItem, error) // Gets latest 'num' articles for the feed
 }
