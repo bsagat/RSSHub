@@ -13,8 +13,7 @@ type Aggregator interface {
 
 	// Dynamic configuration
 	SetInterval(d time.Duration) error // Dynamically changes fetch interval
-	SetWorkers(count int) error
-	Resize(workers int) error // Dynamically resizes worker pool
+	Resize(workers int) error          // Dynamically resizes worker pool
 
 	// Feed management
 	AddFeed(name, desc, url string) error        // Adds a new feed

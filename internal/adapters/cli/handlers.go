@@ -121,7 +121,7 @@ func (h *CLIHandler) handleWorkers() error {
 	}
 
 	log.Info("Setting worker count", "count", workerCount)
-	if err := h.aggregator.SetWorkers(workerCount); err != nil {
+	if err := h.aggregator.Resize(workerCount); err != nil {
 		log.Error("Failed to set worker count", "error", err)
 		return err
 	}
