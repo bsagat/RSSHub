@@ -1,21 +1,21 @@
 CREATE TABLE feeds (
-    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    Name TEXT UNIQUE NOT NULL,
-    Description TEXT ,
-    URL TEXT NOT NULL,
-    Created_at TIMESTAMP DEFAULT NOW(),
-    Updated_at TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT UNIQUE NOT NULL,
+    description TEXT ,
+    url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE articles(
-    ID UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    Title TEXT,
-    Link TEXT ,
-    Description TEXT,
-    Created_at TIMESTAMP DEFAULT NOW(),
-    Updated_at TIMESTAMP,
-    Published_at TIMESTAMP,
-    feed_id UUID references feeds (ID) ON DELETE CASCADE
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT,
+    link TEXT ,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    published_at TIMESTAMP,
+    feed_id UUID references feeds (id) ON DELETE CASCADE
 );
 
 
