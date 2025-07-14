@@ -105,13 +105,14 @@ func (r *ConfigRepo) UpdateWorkerCount(ctx context.Context, count int) error {
 }
 
 // UpdateTimerInterval updates only the timer interval in the configuration
-func (r *ConfigRepo) UpdateTimerInterval(ctx context.Context, interval time.Duration) error {
+func (r *ConfigRepo) UpdateTimerInterval(ctx context.Context, interval time.Duration) (*time.Duration, error) {
 	const op = "ConfigRepo.UpdateTimerInterval"
-	const query = `UPDATE config SET timer_interval = $1`
+	const query = `UPDATE config SET timer_interval = $1 RETURNING timer_interval`
 
-	_, err := r.pool.Exec(ctx, query, interval)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	var lastInterval time.Duration
+	if err := r.pool.QueryRow(ctx, query, interval).Scan(&lastInterval); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	return nil
+
+	return &lastInterval, nil
 }

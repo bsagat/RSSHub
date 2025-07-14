@@ -33,7 +33,7 @@ func (r *ArticleRepo) Create(ctx context.Context, feedID string, articles []mode
 			feed_id
 		) VALUES (
 			$1, $2, $3, $4, $5
-		) ON CONFLICT (link) DO NOTHING`
+		) `
 
 	for _, article := range articles {
 		batch.Queue(query,
@@ -65,7 +65,7 @@ func (r *ArticleRepo) List(ctx context.Context, feedName string, limit int) ([]*
 			a.title, 
 			a.link, 
 			a.description, 
-			a.published_at 
+			a.published_at::TEXT 
 		FROM 
 			articles a
 		JOIN feeds f ON a.feed_id = f.id

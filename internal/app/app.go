@@ -34,9 +34,12 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) (*App, e
 	// Repository
 	articleRepo := repo.NewArticleRepo(db.Pool)
 	feedRepo := repo.NewFeedRepo(db.Pool)
+	configRepo := repo.NewConfigRepo(db.Pool)
 
 	// Services
-	aggregator := service.NewRssAggregator(articleRepo, feedRepo, logger)
+	aggregator := service.NewRssAggregator(articleRepo, feedRepo, configRepo, logger, func() {
+		db.Close()
+	})
 
 	// CLI Handler
 	cliHandler := cli.NewCLIHandler(aggregator, cfg.App, logger)
@@ -51,16 +54,6 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) (*App, e
 	}, nil
 }
 
-func (app *App) close(ctx context.Context) {
-	// Closing database connection
-	app.postgresDB.Close()
-
-	// Closing CLI handler
-	if err := app.cliHandler.Close(); err != nil {
-		app.log.Warn(ctx, "failed to close cli handler", "error", err)
-	}
-}
-
 func (app *App) Run(ctx context.Context) error {
 	// Running CLI
 	code := app.cliHandler.ParseFlags()
@@ -68,6 +61,5 @@ func (app *App) Run(ctx context.Context) error {
 		return fmt.Errorf("cli exited with code %d", code)
 	}
 
-	app.close(ctx)
 	return nil
 }

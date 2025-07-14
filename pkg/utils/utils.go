@@ -24,42 +24,26 @@ func PrintHelp() {
 	fmt.Println(text)
 }
 
-// Feed: tech-crunch
-
-// 1. [2025-06-18] Apple announces new M4 chips for MacBook Pro
-//    https://techcrunch.com/apple-announces-m4/
-
-// 2. [2025-06-17] OpenAI launches GPT-5 with multimodal capabilities
-//    https://techcrunch.com/openai-launches-gpt-5/
-
-// 3. [2025-06-16] Google unveils new privacy tools at I/O 2025
-//    https://techcrunch.com/google-privacy-io-2025/
-
-// 4. [2025-06-15] TikTok introduces developer platform for integrations
-//    https://techcrunch.com/tiktok-developer-platform/
-
-// 5. [2025-06-14] Microsoft Teams gets AI-powered meeting summarization
-//    https://techcrunch.com/microsoft-teams-ai-summary/
-
+// PrintArticleList prints a formatted list of articles for a specific feed.
 func PrintArticleList(articles []*models.RSSItem, feedName string) {
-	format :=
-		`%d. [%s] %s
-	 %s 
-	 
-	 `
+	format := `%d. [%s] %s
+   %s
 
-	fmt.Printf("Feed: %s\n\n", feedName)
+`
+
+	fmt.Printf("# Feed: %s\n\n", feedName)
 	for i, article := range articles {
 		fmt.Printf(format, i+1, article.PubDate, article.Title, article.Link)
 	}
 }
 
+// PrintFeedsList prints a formatted list of available RSS feeds to the console.
 func PrintFeedsList(feeds []*models.Feed) {
-	format := `%d. Name: %s 
-	 URL: %s 
-	 Added: %s 
-	 
-	 `
+	format := `%d. Name: %s
+   URL: %s
+   Added: %s
+
+`
 
 	fmt.Print("# Available RSS Feeds\n\n")
 	for i, feed := range feeds {

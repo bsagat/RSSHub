@@ -183,12 +183,12 @@ func (f *FeedRepo) GetStaleFeeds(ctx context.Context, period time.Duration) ([]*
 	for rows.Next() {
 		feed := new(models.Feed)
 		err := rows.Scan(
-			feed.ID,
-			feed.Name,
-			feed.Description,
-			feed.URL,
-			feed.CreatedAt,
-			feed.UpdatedAt,
+			&feed.ID,
+			&feed.Name,
+			&feed.Description,
+			&feed.URL,
+			&feed.CreatedAt,
+			&feed.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("%s: scan error: %w", op, err)

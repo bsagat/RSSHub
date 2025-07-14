@@ -25,8 +25,6 @@ func (h *CLIHandler) handleFetch() error {
 		log.Error("Data fetch failed", "error", err)
 		return err
 	}
-
-	log.Info("The background process for fetching feeds has started", "interval", h.cfg.TimerInterval.String(), "workers", h.cfg.WorkerCount)
 	return nil
 }
 
@@ -95,13 +93,17 @@ func (h *CLIHandler) handleInterval() error {
 		return err
 	}
 
+	// if interval < time.Minute*2 {
+	// 	log.Error("Interval must be at least 2 min")
+	// 	return errors.New("invalid interval")
+	// }
+
 	log.Info("Setting fetch interval", "interval", interval.String())
 	if err := h.aggregator.SetInterval(interval); err != nil {
 		log.Error("Failed to set fetch interval", "error", err)
 		return err
 	}
 
-	// log.Info("Fetch interval set successfully", "interval", interval.String())
 	return nil
 }
 
@@ -120,13 +122,16 @@ func (h *CLIHandler) handleWorkers() error {
 		return err
 	}
 
+	if workerCount < 1 {
+		log.Error("Worker count must be greater than 0")
+	}
+
 	log.Info("Setting worker count", "count", workerCount)
 	if err := h.aggregator.Resize(workerCount); err != nil {
 		log.Error("Failed to set worker count", "error", err)
 		return err
 	}
 
-	// log.Info("Worker count set successfully", "count", workerCount)
 	return nil
 }
 
