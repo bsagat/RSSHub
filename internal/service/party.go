@@ -50,7 +50,9 @@ func (w *worker) Start(ctx context.Context, wg *sync.WaitGroup, jobCh chan Job) 
 			fmt.Println("Завершаем работу воркера с помощью stop: ", w.id)
 			return
 		case task := <-jobCh:
-			task()
+			if task != nil {
+				task()
+			}
 			fmt.Println("Воркер сделал задачу: ", w.id)
 
 		case <-ctx.Done():
@@ -94,7 +96,6 @@ func (wp *WorkerParty) Start(ctx context.Context) {
 			return
 		}
 	}
-
 }
 
 func (wp *WorkerParty) Stop() {

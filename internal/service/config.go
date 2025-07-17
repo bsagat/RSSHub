@@ -33,6 +33,10 @@ func (a *RssAggregator) Resize(workers int) error {
 	)
 	ctx := context.TODO()
 
+	if workers > 10000 {
+		return errors.New("max goroutine count is 10000")
+	}
+
 	if err := a.configRepo.UpdateWorkerCount(ctx, workers); err != nil {
 		log.Error("Failed to update worker count", "error", err)
 		return fmt.Errorf("%s: %w", op, err)
