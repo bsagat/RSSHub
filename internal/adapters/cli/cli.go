@@ -7,6 +7,7 @@ import (
 	"RSSHub/pkg/utils"
 	"context"
 	"flag"
+	"fmt"
 	"os"
 )
 
@@ -28,22 +29,18 @@ func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.L
 	}
 }
 
-func (h *CLIHandler) ParseFlags() int {
-	const fn = "CLIHandler.ParseFlags"
-	log := h.log.GetSlogLogger().With("fn", fn)
-
+func (h *CLIHandler) ParseFlags() error {
 	var err error
 	flag.Parse()
 
 	if *helpFlag {
 		utils.PrintHelp()
-		return OkStatusCode
+		return nil
 	}
 
 	if len(h.args) < 1 {
-		log.Error("missing CLI arguments", "args", h.args)
 		utils.PrintHelp()
-		return ErrStatusCode
+		return nil
 	}
 
 	if h.args[0] == "--race" {
@@ -66,13 +63,13 @@ func (h *CLIHandler) ParseFlags() int {
 	case articlesFlag:
 		err = h.handleArticle()
 	default:
-		log.Error("flag is undefined", "flag", h.args[0])
-		return ErrStatusCode
+		return fmt.Errorf("flag is undefined: %v", h.args[0])
 	}
 	if err != nil {
-		return ErrStatusCode
+		return err
 	}
-	return OkStatusCode
+
+	return nil
 }
 
 func (h *CLIHandler) Close() error {

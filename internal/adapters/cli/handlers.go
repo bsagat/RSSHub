@@ -214,7 +214,7 @@ func (h *CLIHandler) handleArticle() error {
 		slog.String("op", op),
 	)
 
-	feedName, num := "", 3
+	feedName, num := "", 0
 	switch len(h.args) {
 	case 3:
 		if h.args[1] != feednameSubFlag {

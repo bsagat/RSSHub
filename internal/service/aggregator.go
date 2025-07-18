@@ -89,7 +89,9 @@ func (a *RssAggregator) Start(ctx context.Context) error {
 	}
 
 	a.wc = NewWorkerController(cfg.WorkerCount, a.log)
-	a.tc = NewTickerController(cfg.TimerInterval, a.feedRepo, a.articleRepo, a.log)
+
+	rssFetcher := httpadapter.NewClient(time.Second * 5)
+	a.tc = NewTickerController(cfg.TimerInterval, a.feedRepo, a.articleRepo, rssFetcher, a.log)
 
 	a.wg.Add(2)
 	go a.tc.Run(a.ctx, &a.wg, a.wc)
@@ -123,20 +125,26 @@ func (a *RssAggregator) Stop() error {
 
 // ---------------- TickerController ----------------
 
+type RssFetcher interface {
+	FetchRSSFeed(ctx context.Context, url string) (*models.RSSFeed, error)
+}
+
 type TickerController struct {
 	t           *VarTicker
 	intervalCh  chan time.Duration
 	feedRepo    *repo.FeedRepo
 	articleRepo *repo.ArticleRepo
+	rssFethcer  RssFetcher
 	log         logger.Logger
 }
 
-func NewTickerController(interval time.Duration, feedRepo *repo.FeedRepo, articleRepo *repo.ArticleRepo, log logger.Logger) *TickerController {
+func NewTickerController(interval time.Duration, feedRepo *repo.FeedRepo, articleRepo *repo.ArticleRepo, rssFethcer RssFetcher, log logger.Logger) *TickerController {
 	return &TickerController{
 		t:           NewVarTicker(interval),
 		intervalCh:  make(chan time.Duration, 1),
 		feedRepo:    feedRepo,
 		articleRepo: articleRepo,
+		rssFethcer:  rssFethcer,
 		log:         log,
 	}
 }
@@ -173,17 +181,23 @@ func (c *TickerController) processFeeds(ctx context.Context, wc *WorkerControlle
 	}
 	for _, feed := range feeds {
 		wc.SubmitJob(func() {
-			fetched, err := httpadapter.NewClient(time.Second*5).FetchRSSFeed(ctx, feed.URL)
+			fetched, err := c.rssFethcer.FetchRSSFeed(ctx, feed.URL)
 			if err != nil {
 				c.log.Error(ctx, "Failed to fetch RSS feed", "error", err)
 				return
 			}
-			if err := c.articleRepo.Create(ctx, feed.ID, fetched.Channel.Item); err != nil {
+			if err := c.articleRepo.CreateOrUpdate(ctx, feed.ID, fetched.Channel.Item); err != nil {
 				c.log.Error(ctx, "Failed to save feed items", "error", err)
+				return
+			}
+
+			if err := c.feedRepo.UpdateUpdatedAt(ctx, feed.Name); err != nil {
+				c.log.Error(ctx, "Failed to update updated_at", "error", err)
 				return
 			}
 		})
 	}
+
 }
 
 // ---------------- WorkerController -----------------

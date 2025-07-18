@@ -56,9 +56,8 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) (*App, e
 
 func (app *App) Run(ctx context.Context) error {
 	// Running CLI
-	code := app.cliHandler.ParseFlags()
-	if code != 0 {
-		return fmt.Errorf("cli exited with code %d", code)
+	if err := app.cliHandler.ParseFlags(); err != nil {
+		return err
 	}
 
 	return nil
