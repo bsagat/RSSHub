@@ -46,10 +46,6 @@ func (h *CLIHandler) ParseFlags() int {
 		return ErrStatusCode
 	}
 
-	if h.args[0] == "--race" {
-		h.args = h.args[1:]
-	}
-
 	switch h.args[0] {
 	case fetchFlag:
 		err = h.handleFetch()

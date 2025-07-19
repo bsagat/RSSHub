@@ -22,6 +22,8 @@ var (
 	ErrFailedToUpdateStatus  = errors.New("failed to update aggregator status")
 )
 
+// RssAggregator is the main service that manages the RSS feed aggregation process.
+// It handles the configuration, ticker, and worker controllers.
 type RssAggregator struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -155,7 +157,9 @@ func (c *TickerController) Run(ctx context.Context, wg *sync.WaitGroup, wc *Work
 		case <-c.t.ticker.C:
 			c.processFeeds(ctx, wc)
 		case newInterval := <-c.intervalCh:
+			oldInterval := c.t.GetDuration()
 			c.t.Reset(newInterval)
+			fmt.Printf("Interval of fetching feeds changed from %s minutes to %s minutes", oldInterval, newInterval)
 		}
 	}
 }
@@ -175,11 +179,15 @@ func (c *TickerController) processFeeds(ctx context.Context, wc *WorkerControlle
 		wc.SubmitJob(func() {
 			fetched, err := httpadapter.NewClient(time.Second*5).FetchRSSFeed(ctx, feed.URL)
 			if err != nil {
-				c.log.Error(ctx, "Failed to fetch RSS feed", "error", err)
+				c.log.Error(ctx, "Failed to fetch RSS feed", "feed_URL", feed.URL, "error", err)
+				return
+			}
+			if len(fetched.Channel.Item) == 0 {
+				c.log.Error(ctx, "There is no items in the feed", "feed_URL", feed.URL)
 				return
 			}
 			if err := c.articleRepo.Create(ctx, feed.ID, fetched.Channel.Item); err != nil {
-				c.log.Error(ctx, "Failed to save feed items", "error", err)
+				c.log.Error(ctx, "Failed to save feed items", "feed_id", feed.ID, "articles", fetched.Channel.Item, "error", err)
 				return
 			}
 		})
