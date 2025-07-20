@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -81,8 +82,15 @@ func (l *logger) GetLogLogger(level string, prefix string) *log.Logger {
 	return log.New(&handlerWriter{l.slog.Handler(), slogLevel, true}, prefix, 0)
 }
 
-// InitLogger создаение логгера на основе slog
+// InitLogger создаёт логгер на основе slog и пишет в файл .log
 func InitLogger(logLevel string) Logger {
+	// Открываем файл для логов
+	file, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(fmt.Sprintf("cannot open log file: %v", err))
+	}
+
+	// Устанавливаем уровень логирования
 	switch logLevel {
 	case LevelDebug:
 		l.opts.Level = slog.LevelDebug
@@ -94,6 +102,15 @@ func InitLogger(logLevel string) Logger {
 		l.opts.Level = slog.LevelError
 	}
 
-	l.slog = slog.New(slog.NewJSONHandler(os.Stdout, l.opts))
+	// Настраиваем JSON-хендлер с записью в файл
+	handler := slog.NewJSONHandler(file, l.opts)
+	l.slog = slog.New(handler)
+
 	return &l
+}
+
+// Notify выводит сообщение в лог и на консоль
+func Notify(log *slog.Logger, msg string) {
+	log.Info(msg)
+	fmt.Println(msg)
 }

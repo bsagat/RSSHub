@@ -32,7 +32,6 @@ func (h *CLIHandler) ParseFlags() int {
 	const fn = "CLIHandler.ParseFlags"
 	log := h.log.GetSlogLogger().With("fn", fn)
 
-	var err error
 	flag.Parse()
 
 	if *helpFlag {
@@ -46,6 +45,7 @@ func (h *CLIHandler) ParseFlags() int {
 		return ErrStatusCode
 	}
 
+	var err error
 	switch h.args[0] {
 	case fetchFlag:
 		err = h.handleFetch()

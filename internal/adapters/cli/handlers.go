@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"RSSHub/pkg/logger"
 	"RSSHub/pkg/utils"
 	"context"
+	"fmt"
 	"log/slog"
 	"strconv"
 	"time"
@@ -74,7 +76,8 @@ func (h *CLIHandler) handleAdd() error {
 		return err
 	}
 
-	log.Info("Feed added successfully", "name", name)
+	msg := fmt.Sprintf("Feed %s added succesfully with URL %s", name, url)
+	logger.Notify(log, msg)
 	return nil
 }
 
