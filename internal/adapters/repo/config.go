@@ -90,24 +90,36 @@ func (r *ConfigRepo) UpdateRunStatus(ctx context.Context, run bool) error {
 }
 
 // UpdateWorkerCount updates only the worker count in the configuration
-func (r *ConfigRepo) UpdateWorkerCount(ctx context.Context, count int) error {
+func (r *ConfigRepo) UpdateWorkerCount(ctx context.Context, count int) (int, error) {
 	const op = "ConfigRepo.UpdateWorkerCount"
 	const query = `
+		WITH old_count AS (
+        	SELECT worker_count FROM config 
+    	)
         UPDATE config 
         SET worker_count = $1
-        WHERE true`
+		FROM old_count
+		RETURNING old_count.worker_count`
 
-	_, err := r.pool.Exec(ctx, query, count)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	var oldCount int
+	if err := r.pool.QueryRow(ctx, query, count).Scan(&oldCount); err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
-	return nil
+	return oldCount, nil
 }
 
 // UpdateTimerInterval updates only the timer interval in the configuration
 func (r *ConfigRepo) UpdateTimerInterval(ctx context.Context, interval time.Duration) (*time.Duration, error) {
 	const op = "ConfigRepo.UpdateTimerInterval"
-	const query = `UPDATE config SET timer_interval = $1 RETURNING timer_interval`
+	const query = `
+	WITH old_interval AS (
+		SELECT timer_interval FROM config
+	)
+	
+	UPDATE config 
+	SET timer_interval = $1 
+	FROM old_interval
+	RETURNING old_interval.timer_interval`
 
 	var lastInterval time.Duration
 	if err := r.pool.QueryRow(ctx, query, interval).Scan(&lastInterval); err != nil {

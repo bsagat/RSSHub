@@ -47,16 +47,15 @@ func (w *worker) Start(ctx context.Context, wg *sync.WaitGroup, jobCh chan Job) 
 	for {
 		select {
 		case <-w.stop:
-			fmt.Println("Завершаем работу воркера с помощью stop: ", w.id)
+			fmt.Println("Stopping worker:", w.id)
 			return
 		case task := <-jobCh:
 			if task != nil {
 				task()
 			}
-			fmt.Println("Воркер сделал задачу: ", w.id)
-
+			fmt.Println("Worker completed a task:", w.id)
 		case <-ctx.Done():
-			fmt.Println("Завершаем работу воркера с помощью контекста: ", w.id)
+			fmt.Println("Stopping worker due to context cancellation:", w.id)
 			return
 		}
 	}
@@ -71,7 +70,6 @@ func NewWorkerParty() *WorkerParty {
 	}
 }
 
-// Передавать контекст который будет прослушиваться
 func (wp *WorkerParty) Start(ctx context.Context) {
 	wp.mu.Lock()
 	wp.ctx = ctx
@@ -79,7 +77,6 @@ func (wp *WorkerParty) Start(ctx context.Context) {
 
 	for {
 		select {
-		// Обновляем кол-во воркеров
 		case delta := <-wp.deltaCh:
 			wp.mu.Lock()
 			current := len(wp.workers)
@@ -90,7 +87,8 @@ func (wp *WorkerParty) Start(ctx context.Context) {
 			} else {
 				wp.RemoveWorkers(current - delta)
 			}
-			fmt.Printf("Number of workers changed from %d to %d\n", current, delta)
+			fmt.Printf("Scaled workers from %d to %d\n", current, delta)
+
 		case <-wp.ctx.Done():
 			wp.vacation()
 			return
@@ -104,7 +102,6 @@ func (wp *WorkerParty) Stop() {
 }
 
 func (wp *WorkerParty) Scale(workerCount int) error {
-	/// валидировать count
 	if workerCount < 0 {
 		return errors.New("worker count must be >= 0")
 	}
@@ -125,12 +122,12 @@ func (wp *WorkerParty) vacation() {
 	wp.mu.Lock()
 	defer wp.mu.Unlock()
 
-	fmt.Println("Отправляем воркеров в отпуск...")
+	fmt.Println("Sending all workers on vacation...")
 	for _, worker := range wp.workers {
 		worker.stop <- struct{}{}
 		close(worker.stop)
 	}
-	fmt.Println("Все воркеры в отпуске...")
+	fmt.Println("All workers are now on vacation.")
 }
 
 func (wp *WorkerParty) AddWorkers(n int) {
@@ -140,14 +137,14 @@ func (wp *WorkerParty) AddWorkers(n int) {
 	startId := len(wp.workers)
 	for i := 1; i <= n; i++ {
 		w := NewWorker(startId + i)
-
 		wp.workers = append(wp.workers, w)
 
 		wp.wg.Add(1)
 		go w.Start(wp.ctx, &wp.wg, wp.jobCh)
-		fmt.Println("Добавлен воркер:", w.id)
+
+		fmt.Println("Added worker:", w.id)
 	}
-	fmt.Println("Текущее количество воркеров:", len(wp.workers))
+	fmt.Println("Current worker count:", len(wp.workers))
 }
 
 func (wp *WorkerParty) RemoveWorkers(n int) {
@@ -156,13 +153,13 @@ func (wp *WorkerParty) RemoveWorkers(n int) {
 
 	for i := 0; i < n; i++ {
 		idx := len(wp.workers) - 1
-
 		w := wp.workers[idx]
 		wp.workers = wp.workers[:idx]
 
 		w.stop <- struct{}{}
 		close(w.stop)
-		fmt.Println("Удален воркер:", w.id)
+
+		fmt.Println("Removed worker:", w.id)
 	}
-	fmt.Println("Текущее количество воркеров:", len(wp.workers))
+	fmt.Println("Current worker count:", len(wp.workers))
 }

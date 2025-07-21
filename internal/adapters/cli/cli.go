@@ -29,8 +29,10 @@ func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.L
 	}
 }
 
-func (h *CLIHandler) ParseFlags() error {
-	var err error
+func (h *CLIHandler) ParseFlags() int {
+	const fn = "CLIHandler.ParseFlags"
+	log := h.log.GetSlogLogger().With("fn", fn)
+
 	flag.Parse()
 
 	if *helpFlag {
@@ -43,10 +45,7 @@ func (h *CLIHandler) ParseFlags() error {
 		return nil
 	}
 
-	if h.args[0] == "--race" {
-		h.args = h.args[1:]
-	}
-
+	var err error
 	switch h.args[0] {
 	case fetchFlag:
 		err = h.handleFetch()
