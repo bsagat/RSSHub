@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"RSSHub/config"
 	"RSSHub/internal/domain/ports"
 	"RSSHub/pkg/logger"
 	"RSSHub/pkg/utils"
@@ -14,16 +13,14 @@ type CLIHandler struct {
 	aggregator ports.Aggregator
 	args       []string
 
-	cfg config.CLI_APP
 	log logger.Logger
 }
 
-func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.Logger) *CLIHandler {
+func NewCLIHandler(aggregator ports.Aggregator, log logger.Logger) *CLIHandler {
 	return &CLIHandler{
 		aggregator: aggregator,
 		args:       os.Args[1:],
 
-		cfg: cfg,
 		log: log,
 	}
 }
@@ -50,6 +47,8 @@ func (h *CLIHandler) ParseFlags() error {
 		err = h.handleDelete()
 	case articlesFlag:
 		err = h.handleArticle()
+	case statusFlag:
+		err = h.handleStatus()
 	default:
 		utils.PrintHelp()
 		return fmt.Errorf("flag is undefined: %v", h.args[0])

@@ -42,7 +42,7 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) (*App, e
 	})
 
 	// CLI Handler
-	cliHandler := cli.NewCLIHandler(aggregator, cfg.App, logger)
+	cliHandler := cli.NewCLIHandler(aggregator, logger)
 
 	return &App{
 		cliHandler: cliHandler,

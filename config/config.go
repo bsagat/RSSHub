@@ -4,18 +4,11 @@ import (
 	"RSSHub/pkg/envzilla"
 	"RSSHub/pkg/postgres"
 	"fmt"
-	"time"
 )
 
 type (
 	Config struct {
 		Postgres postgres.Config
-		App      CLI_APP
-	}
-
-	CLI_APP struct {
-		TimerInterval time.Duration `env:"CLI_APP_TIMER_INTERVAL" default:"3m"`
-		WorkerCount   int           `env:"CLI_APP_WORKERS_COUNT" default:"3"`
 	}
 )
 

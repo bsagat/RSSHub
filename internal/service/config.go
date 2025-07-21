@@ -52,8 +52,8 @@ func (a *RssAggregator) Resize(workers int) error {
 	return nil
 }
 
-// loadConfig retrieves the RSS aggregator configuration, checks running state, and updates run status in the repository.
-func (a *RssAggregator) loadConfig(ctx context.Context) (*models.RssConfig, error) {
+// LoadConfig retrieves the RSS aggregator configuration, checks running state, and updates run status in the repository.
+func (a *RssAggregator) GetConfig(ctx context.Context) (*models.RssConfig, error) {
 	const op = "RssAggregator.loadConfig"
 	log := a.log.GetSlogLogger().With("op", op)
 
@@ -66,13 +66,6 @@ func (a *RssAggregator) loadConfig(ctx context.Context) (*models.RssConfig, erro
 		log.Error("Config is not found")
 		return nil, ErrConfigNotFound
 	}
-	if cfg.Run {
-		return nil, ErrProcessAlreadyRunning
-	}
 
-	if err := a.configRepo.UpdateRunStatus(ctx, true); err != nil {
-		log.Error("Failed to update aggregator status", "error", err)
-		return nil, ErrFailedToUpdateStatus
-	}
 	return cfg, nil
 }

@@ -20,6 +20,8 @@ var (
 	ErrEmptyName              = errors.New("--name flag is required")
 	ErrEmptyDesc              = errors.New("--desc flag is required")
 	ErrEmptyUrl               = errors.New("--url flag is required")
+
+	ErrArticleFlagExpected = errors.New("invalid articles command usage, expected \"rsshub articles --feed-name <feed name> --num <num>\"")
 )
 
 var (

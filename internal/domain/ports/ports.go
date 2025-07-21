@@ -14,6 +14,7 @@ type Aggregator interface {
 	// Dynamic configuration
 	SetInterval(d time.Duration) error // Dynamically changes fetch interval
 	Resize(workers int) error          // Dynamically resizes worker pool
+	GetConfig(ctx context.Context) (*models.RssConfig, error)
 
 	// Feed management
 	AddFeed(name, desc, url string) error      // Adds a new feed

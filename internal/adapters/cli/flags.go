@@ -8,6 +8,7 @@ var (
 	listFlag        = "list"
 	deleteFlag      = "delete"
 	articlesFlag    = "articles"
+	statusFlag      = "status"
 )
 
 var (

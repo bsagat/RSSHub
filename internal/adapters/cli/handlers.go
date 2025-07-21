@@ -217,6 +217,7 @@ func (h *CLIHandler) handleArticle() error {
 	)
 
 	feedName, num := "", 0
+
 	switch len(h.args) {
 	case 3:
 		if h.args[1] != feednameSubFlag {
@@ -258,9 +259,8 @@ func (h *CLIHandler) handleArticle() error {
 		}
 
 	default:
-		log.Error(`Invalid articles command usage","expected","rsshub articles --feed-name <feed name> |
-		 rsshub articles --feed-name <feed name> --num <num>`, "got", h.args)
-		return ErrInvArticlesFlag
+		log.Error(ErrArticleFlagExpected.Error(), "got", h.args)
+		return ErrArticleFlagExpected
 	}
 
 	log.Info("Getting articles list", "feedName", feedName, "num", num)
@@ -271,5 +271,23 @@ func (h *CLIHandler) handleArticle() error {
 	}
 
 	utils.PrintArticleList(articles, feedName)
+	return nil
+}
+
+func (h *CLIHandler) handleStatus() error {
+	const op = "CLIHandler.handleStatus"
+	log := h.log.GetSlogLogger().With(
+		slog.String("op", op),
+	)
+
+	rssConfig, err := h.aggregator.GetConfig(context.Background())
+	if err != nil {
+		log.Error("failed to load config", "error", err)
+		return errors.New("failed to load config")
+	}
+
+	msg := utils.PrettyRssConfig(rssConfig)
+
+	h.log.Notify(msg)
 	return nil
 }

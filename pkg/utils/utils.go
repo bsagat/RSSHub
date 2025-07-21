@@ -3,6 +3,7 @@ package utils
 import (
 	"RSSHub/internal/domain/models"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ func PrintHelp() {
 
   Common Commands:
        add             add new RSS feed
+       status          show current status of application
        set-interval    set RSS fetch interval
        set-workers     set number of workers
        list            list available RSS feeds
@@ -91,6 +93,22 @@ func PrettyDuration(d time.Duration) string {
 	}
 
 	return joinParts(parts)
+}
+
+func PrettyRssConfig(c *models.RssConfig) string {
+	var sb strings.Builder
+
+	sb.WriteString("Current configuration:\n")
+	status := "stopped"
+	if c.Run {
+		status = "running"
+	}
+
+	sb.WriteString(fmt.Sprintf("  Status:         %v\n", status))
+	sb.WriteString(fmt.Sprintf("  Worker count:   %d\n", c.WorkerCount))
+	sb.WriteString(fmt.Sprintf("  Timer interval: %s", PrettyDuration(c.TimerInterval)))
+
+	return sb.String()
 }
 
 func joinParts(parts []string) string {

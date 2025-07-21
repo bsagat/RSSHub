@@ -59,15 +59,27 @@ func (a *RssAggregator) Start(ctx context.Context) error {
 	const op = "RssAggregator.Start"
 	log := a.log.GetSlogLogger().With("op", op)
 
-	// Читаем конфиг
-	cfg, err := a.loadConfig(ctx)
+	// Reading configuration
+	cfg, err := a.GetConfig(ctx)
 	if err != nil {
 		log.Error("failed to load config", "error", err)
 		return err
 	}
 
+	// Checking if process is already runnning
+	if cfg.Run {
+		return ErrProcessAlreadyRunning
+	}
+
+	// Updating application status
+	if err := a.configRepo.UpdateRunStatus(ctx, true); err != nil {
+		log.Error("Failed to update aggregator status", "error", err)
+		return ErrFailedToUpdateStatus
+	}
+
 	a.wc = NewWorkerController(cfg.WorkerCount, a.log)
 
+	// Initialize rss fetcher.
 	rssFetcher := httpadapter.NewClient(time.Second * 5)
 	a.tc = NewTickerController(cfg.TimerInterval, a.feedRepo, a.articleRepo, rssFetcher, a.log)
 

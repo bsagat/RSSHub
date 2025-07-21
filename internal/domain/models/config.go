@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // RssConfig represent config stored in database
 type RssConfig struct {
@@ -8,11 +10,3 @@ type RssConfig struct {
 	WorkerCount   int
 	TimerInterval time.Duration
 }
-
-var (
-	DefaultRssConfig *RssConfig = &RssConfig{
-		Run:           false,
-		WorkerCount:   3,
-		TimerInterval: 3 * time.Minute,
-	}
-)
