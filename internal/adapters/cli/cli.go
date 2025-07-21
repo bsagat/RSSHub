@@ -7,6 +7,7 @@ import (
 	"RSSHub/pkg/utils"
 	"context"
 	"flag"
+	"fmt"
 	"os"
 )
 
@@ -36,13 +37,12 @@ func (h *CLIHandler) ParseFlags() int {
 
 	if *helpFlag {
 		utils.PrintHelp()
-		return OkStatusCode
+		return nil
 	}
 
 	if len(h.args) < 1 {
-		log.Error("missing CLI arguments", "args", h.args)
 		utils.PrintHelp()
-		return ErrStatusCode
+		return nil
 	}
 
 	var err error
@@ -62,13 +62,13 @@ func (h *CLIHandler) ParseFlags() int {
 	case articlesFlag:
 		err = h.handleArticle()
 	default:
-		log.Error("flag is undefined", "flag", h.args[0])
-		return ErrStatusCode
+		return fmt.Errorf("flag is undefined: %v", h.args[0])
 	}
 	if err != nil {
-		return ErrStatusCode
+		return err
 	}
-	return OkStatusCode
+
+	return nil
 }
 
 func (h *CLIHandler) Close() error {
