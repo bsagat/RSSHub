@@ -2,7 +2,7 @@ package service
 
 import (
 	"RSSHub/internal/domain/models"
-	"RSSHub/pkg/logger"
+	"RSSHub/pkg/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -24,8 +24,8 @@ func (a *RssAggregator) SetInterval(changed time.Duration) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	msg := fmt.Sprintf("Interval of fetching feeds changed from %d minutes to %d minutes", int(last.Minutes()), int(changed.Minutes()))
-	logger.Notify(log, msg)
+	msg := fmt.Sprintf("Interval of fetching feeds changed from %s to %s", utils.PrettyDuration(*last), utils.PrettyDuration(changed))
+	a.log.Notify(msg)
 	return nil
 }
 
@@ -44,11 +44,11 @@ func (a *RssAggregator) Resize(workers int) error {
 	oldCount, err := a.configRepo.UpdateWorkerCount(ctx, workers)
 	if err != nil {
 		log.Error("Failed to update worker count", "error", err)
-		return fmt.Errorf("%s: %w", op, err)
+		return errors.New("failed to update worker count")
 	}
 
 	msg := fmt.Sprintf("Number of workers changed from %d to %d ", oldCount, workers)
-	logger.Notify(log, msg)
+	a.log.Notify(msg)
 	return nil
 }
 
@@ -60,21 +60,19 @@ func (a *RssAggregator) loadConfig(ctx context.Context) (*models.RssConfig, erro
 	cfg, err := a.configRepo.Get(ctx)
 	if err != nil {
 		log.Error("Failed to read config", "error", err)
-		return nil, fmt.Errorf("%s: %w", op, ErrFailedToReadConfig)
+		return nil, ErrFailedToReadConfig
 	}
 	if cfg == nil {
 		log.Error("Config is not found")
 		return nil, ErrConfigNotFound
 	}
 	if cfg.Run {
-		msg := "Background process already running"
-		logger.Notify(log, msg)
 		return nil, ErrProcessAlreadyRunning
 	}
 
 	if err := a.configRepo.UpdateRunStatus(ctx, true); err != nil {
 		log.Error("Failed to update aggregator status", "error", err)
-		return nil, fmt.Errorf("%s: %w", op, ErrFailedToUpdateStatus)
+		return nil, ErrFailedToUpdateStatus
 	}
 	return cfg, nil
 }

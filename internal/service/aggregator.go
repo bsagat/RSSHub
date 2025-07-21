@@ -3,7 +3,9 @@ package service
 import (
 	"RSSHub/internal/adapters/httpadapter"
 	"RSSHub/internal/adapters/repo"
+	"RSSHub/internal/domain/models"
 	"RSSHub/pkg/logger"
+	"RSSHub/pkg/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -16,7 +18,7 @@ import (
 
 var (
 	ErrConfigNotFound        = errors.New("RSS config not found")
-	ErrProcessAlreadyRunning = errors.New("process already running")
+	ErrProcessAlreadyRunning = errors.New("background process already running")
 	ErrFailedToReadConfig    = errors.New("failed to read config")
 	ErrFailedToUpdateStatus  = errors.New("failed to update aggregator status")
 )
@@ -60,7 +62,8 @@ func (a *RssAggregator) Start(ctx context.Context) error {
 	// Читаем конфиг
 	cfg, err := a.loadConfig(ctx)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		log.Error("failed to load config", "error", err)
+		return err
 	}
 
 	a.wc = NewWorkerController(cfg.WorkerCount, a.log)
@@ -76,8 +79,8 @@ func (a *RssAggregator) Start(ctx context.Context) error {
 	go a.intervalUpdater(a.ctx, cfg.TimerInterval)
 	go a.countUpdater(a.ctx, cfg.WorkerCount)
 
-	msg := fmt.Sprintf("The background process for fetching feeds has started (interval = %s minutes, workers = %d)", cfg.TimerInterval.String(), cfg.WorkerCount)
-	logger.Notify(log, msg)
+	msg := fmt.Sprintf("The background process for fetching feeds has started (interval = %s, workers = %d)", utils.PrettyDuration(cfg.TimerInterval), cfg.WorkerCount)
+	a.log.Notify(msg)
 	a.ListenShutdown(a.ctx)
 	return nil
 }
@@ -96,7 +99,7 @@ func (a *RssAggregator) Stop() error {
 	}
 
 	msg := "Graceful shutdown: aggregator stopped"
-	logger.Notify(log, msg)
+	a.log.Notify(msg)
 	return nil
 }
 
@@ -143,8 +146,8 @@ func (c *TickerController) Run(ctx context.Context, wg *sync.WaitGroup, wc *Work
 			oldInterval := c.t.GetDuration()
 			c.t.Reset(newInterval)
 
-			msg := fmt.Sprintf("Interval of fetching feeds changed from %d minutes to %d minutes", int(oldInterval.Minutes()), int(newInterval.Minutes()))
-			logger.Notify(c.log.GetSlogLogger(), msg)
+			msg := fmt.Sprintf("Interval of fetching feeds changed from %s to %s", utils.PrettyDuration(oldInterval), utils.PrettyDuration(newInterval))
+			c.log.Notify(msg)
 		}
 	}
 }
@@ -172,7 +175,7 @@ func (c *TickerController) processFeeds(ctx context.Context, wc *WorkerControlle
 				return
 			}
 
-			if err := c.articleRepo.Create(ctx, feed.ID, fetched.Channel.Item); err != nil {
+			if err := c.articleRepo.CreateOrUpdate(ctx, feed.ID, fetched.Channel.Item); err != nil {
 				c.log.Error(ctx, "Failed to save feed items", "feed_id", feed.ID, "articles", fetched.Channel.Item, "error", err)
 				return
 			}
@@ -294,7 +297,7 @@ func (a *RssAggregator) ListenShutdown(ctx context.Context) {
 
 	s := <-shutdownCh
 	msg := fmt.Sprintf("catched shutdown signal %s", s.String())
-	logger.Notify(a.log.GetSlogLogger(), msg)
+	a.log.Notify(msg)
 
 	if err := a.Stop(); err != nil {
 		a.log.Error(ctx, "Failed to stop aggregator", "error", err)
@@ -302,5 +305,5 @@ func (a *RssAggregator) ListenShutdown(ctx context.Context) {
 	a.cleanDb()
 
 	msg = "graceful shutdown completed!"
-	logger.Notify(a.log.GetSlogLogger(), msg)
+	a.log.Notify(msg)
 }

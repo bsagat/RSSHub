@@ -5,7 +5,6 @@ import (
 	"RSSHub/internal/app"
 	"RSSHub/pkg/logger"
 	"context"
-	"log"
 	"os"
 )
 
@@ -30,6 +29,7 @@ func Run() {
 
 	// Running the apllication
 	if err := application.Run(ctx); err != nil {
-		log.Fatal(err)
+		logger.Error(ctx, "failed to run application", "error", err)
+		os.Exit(1)
 	}
 }

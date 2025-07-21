@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"RSSHub/pkg/logger"
 	"RSSHub/pkg/utils"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -77,7 +77,7 @@ func (h *CLIHandler) handleAdd() error {
 	}
 
 	msg := fmt.Sprintf("Feed %s added succesfully with URL %s", name, url)
-	logger.Notify(log, msg)
+	h.log.Notify(msg)
 	return nil
 }
 
@@ -96,12 +96,11 @@ func (h *CLIHandler) handleInterval() error {
 		return err
 	}
 
-	// if interval < time.Minute*2 {
-	// 	log.Error("Interval must be at least 2 min")
-	// 	return errors.New("invalid interval")
-	// }
+	if interval < time.Minute*2 {
+		log.Error("Interval must be at least 2 min")
+		return errors.New("invalid interval, must be at least 2 min")
+	}
 
-	log.Info("Setting fetch interval", "interval", interval.String())
 	if err := h.aggregator.SetInterval(interval); err != nil {
 		log.Error("Failed to set fetch interval", "error", err)
 		return err
@@ -126,7 +125,7 @@ func (h *CLIHandler) handleWorkers() error {
 	}
 
 	if workerCount < 1 {
-		log.Error("Worker count must be greater than 0")
+		return errors.New("worker count must be greater than 0")
 	}
 
 	log.Info("Setting worker count", "count", workerCount)

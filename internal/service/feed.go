@@ -28,7 +28,7 @@ func (a *RssAggregator) GetArticles(feedName string, num int) ([]*models.RSSItem
 	articles, err = a.articleRepo.List(ctx, feedName, num)
 	if err != nil {
 		log.Error("Failed to get articles list", "error", err)
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, errors.New("failed to get articles list")
 	}
 
 	if len(articles) == 0 {
@@ -56,16 +56,12 @@ func (a *RssAggregator) ListFeeds(num int) ([]*models.Feed, error) {
 	switch num {
 	case 0:
 		feeds, err = a.feedRepo.ListAll(ctx)
-		if err != nil {
-			log.Error("Failed to get all feed list", "error", err)
-			return nil, fmt.Errorf("%s: %w", op, err)
-		}
 	default:
 		feeds, err = a.feedRepo.List(ctx, num)
-		if err != nil {
-			log.Error("Failed to get feed list", "error", err)
-			return nil, fmt.Errorf("%s: %w", op, err)
-		}
+	}
+	if err != nil {
+		log.Error("Failed to get feed list", "error", err)
+		return nil, errors.New("failed to get feed list")
 	}
 
 	if len(feeds) == 0 {
@@ -90,7 +86,7 @@ func (a *RssAggregator) AddFeed(name, desc, url string) error {
 	exist, err := a.feedRepo.Exist(ctx, name)
 	if err != nil {
 		log.Error("Failed to check feed existence", "error", err)
-		return fmt.Errorf("%s: %w", op, err)
+		return errors.New("failed to check feed existence")
 	}
 
 	if exist {
@@ -105,7 +101,7 @@ func (a *RssAggregator) AddFeed(name, desc, url string) error {
 	}
 	if err := a.feedRepo.Create(ctx, feed); err != nil {
 		log.Error("Failed to create new feed", "error", err)
-		return fmt.Errorf("%s: %w", op, err)
+		return errors.New("failed to create new feed")
 	}
 	return nil
 }
@@ -124,16 +120,16 @@ func (a *RssAggregator) DeleteFeed(name string) error {
 	exist, err := a.feedRepo.Exist(ctx, name)
 	if err != nil {
 		log.Error("Failed to check feed existence", "error", err)
-		return fmt.Errorf("%s: %w", op, err)
+		return errors.New("failed to check feed existence")
 	}
 
 	if !exist {
-		return fmt.Errorf("feed is not exist")
+		return errors.New("the feed is not exist")
 	}
 
 	if err := a.feedRepo.Delete(ctx, name); err != nil {
 		log.Error("Failed to delete feed", "error", err)
-		return fmt.Errorf("%s: %w", op, err)
+		return errors.New("failed to delete feed")
 	}
 
 	return nil

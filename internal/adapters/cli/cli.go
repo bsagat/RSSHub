@@ -29,18 +29,10 @@ func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.L
 	}
 }
 
-func (h *CLIHandler) ParseFlags() int {
-	const fn = "CLIHandler.ParseFlags"
-	log := h.log.GetSlogLogger().With("fn", fn)
-
+func (h *CLIHandler) ParseFlags() error {
 	flag.Parse()
 
-	if *helpFlag {
-		utils.PrintHelp()
-		return nil
-	}
-
-	if len(h.args) < 1 {
+	if *helpFlag || len(h.args) < 1 {
 		utils.PrintHelp()
 		return nil
 	}
@@ -62,9 +54,12 @@ func (h *CLIHandler) ParseFlags() int {
 	case articlesFlag:
 		err = h.handleArticle()
 	default:
+		utils.PrintHelp()
 		return fmt.Errorf("flag is undefined: %v", h.args[0])
 	}
+
 	if err != nil {
+		h.log.Notify(err.Error())
 		return err
 	}
 

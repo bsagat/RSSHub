@@ -24,6 +24,8 @@ type Logger interface {
 
 	GetSlogLogger() *slog.Logger
 	GetLogLogger(level string, prefix string) *log.Logger
+
+	Notify(msg string)
 }
 
 var l = logger{
@@ -60,6 +62,11 @@ func (l *logger) Error(ctx context.Context, msg string, args ...any) {
 // GetSlogLogger метод для возврата объекта slog
 func (l *logger) GetSlogLogger() *slog.Logger {
 	return l.slog
+}
+
+func (l *logger) Notify(msg string) {
+	l.Debug(context.TODO(), msg)
+	fmt.Println(msg)
 }
 
 // GetLogLogger метод для возврата объекта log.Logger. Данный лог не разделяется на уровни логирования.
@@ -107,10 +114,4 @@ func InitLogger(logLevel string) Logger {
 	l.slog = slog.New(handler)
 
 	return &l
-}
-
-// Notify выводит сообщение в лог и на консоль
-func Notify(log *slog.Logger, msg string) {
-	log.Info(msg)
-	fmt.Println(msg)
 }
