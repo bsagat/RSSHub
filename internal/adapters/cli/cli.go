@@ -6,7 +6,6 @@ import (
 	"RSSHub/pkg/logger"
 	"RSSHub/pkg/utils"
 	"context"
-	"flag"
 	"fmt"
 	"os"
 )
@@ -30,9 +29,7 @@ func NewCLIHandler(aggregator ports.Aggregator, cfg config.CLI_APP, log logger.L
 }
 
 func (h *CLIHandler) ParseFlags() error {
-	flag.Parse()
-
-	if *helpFlag || len(h.args) < 1 {
+	if len(h.args) < 1 {
 		utils.PrintHelp()
 		return nil
 	}

@@ -4,13 +4,24 @@ import (
 	"RSSHub/config"
 	"RSSHub/internal/app"
 	"RSSHub/pkg/logger"
+	"RSSHub/pkg/utils"
 	"context"
+	"flag"
 	"os"
 )
 
-func Run() {
-	ctx := context.Background()
+var helpFlag = flag.Bool("help", false, "Prints help message")
 
+func Run() {
+	flag.Parse()
+
+	// Printing help flag
+	if *helpFlag {
+		utils.PrintHelp()
+		return
+	}
+
+	ctx := context.Background()
 	logger := logger.InitLogger(logger.LevelDebug)
 
 	// Config file parse

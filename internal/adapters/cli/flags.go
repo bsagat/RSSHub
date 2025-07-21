@@ -1,7 +1,5 @@
 package cli
 
-import "flag"
-
 var (
 	fetchFlag       = "fetch"
 	addFlag         = "add"
@@ -19,5 +17,3 @@ var (
 	urlSubFlag      = "--url"
 	descriptionFlag = "--desc"
 )
-
-var helpFlag = flag.Bool("help", false, "Prints help message")
